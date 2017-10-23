@@ -1,0 +1,8 @@
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot.WindowsForms\Bin\Release\OxyPlot.WindowsForms.dll
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot.WindowsForms\Bin\Release\OxyPlot.WindowsForms.pdb
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot.WindowsForms\Bin\Release\OxyPlot.dll
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot.WindowsForms\Bin\Release\OxyPlot.pdb
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot.WindowsForms\obj\Release\NET40\OxyPlot.WindowsForms.csprojResolveAssemblyReference.cache
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot.WindowsForms\obj\Release\NET40\OxyPlot.WindowsForms.csproj.CoreCompileInputs.cache
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot.WindowsForms\obj\Release\NET40\OxyPlot.WindowsForms.dll
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot.WindowsForms\obj\Release\NET40\OxyPlot.WindowsForms.pdb

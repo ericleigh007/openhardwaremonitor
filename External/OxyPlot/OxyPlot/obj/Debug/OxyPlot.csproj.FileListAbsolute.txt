@@ -1,0 +1,5 @@
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot\Bin\Debug\OxyPlot.dll
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot\Bin\Debug\OxyPlot.pdb
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot\obj\Debug\OxyPlot.csproj.CoreCompileInputs.cache
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot\obj\Debug\OxyPlot.dll
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\OxyPlot\OxyPlot\obj\Debug\OxyPlot.pdb

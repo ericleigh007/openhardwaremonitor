@@ -1,12 +1,16 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.15
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHardwareMonitorLib", "OpenHardwareMonitorLib.csproj", "{B0397530-545A-471D-BB74-027AE456DF1A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHardwareMonitor", "OpenHardwareMonitor.csproj", "{F5E0C1F7-9E9B-46F2-AC88-8C9C1C923880}"
 	ProjectSection(ProjectDependencies) = postProject
 		{B0397530-545A-471D-BB74-027AE456DF1A} = {B0397530-545A-471D-BB74-027AE456DF1A}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleMonitor", "..\ConsoleMonitor\ConsoleMonitor.csproj", "{0E66A4F7-85DF-4F29-826D-A23BC6B638BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,9 +26,16 @@ Global
 		{F5E0C1F7-9E9B-46F2-AC88-8C9C1C923880}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5E0C1F7-9E9B-46F2-AC88-8C9C1C923880}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5E0C1F7-9E9B-46F2-AC88-8C9C1C923880}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E66A4F7-85DF-4F29-826D-A23BC6B638BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E66A4F7-85DF-4F29-826D-A23BC6B638BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E66A4F7-85DF-4F29-826D-A23BC6B638BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E66A4F7-85DF-4F29-826D-A23BC6B638BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1804C774-BED5-4F60-A08E-4A9253B6CC79}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = OpenHardwareMonitor.csproj
@@ -32,14 +43,13 @@ Global
 		$0.DotNetNamingPolicy = $1
 		$1.DirectoryNamespaceAssociation = None
 		$1.ResourceNamePolicy = FileFormatDefault
-		$0.TextStylePolicy = $2
+		$0.TextStylePolicy = $3
 		$2.FileWidth = 120
 		$2.TabWidth = 2
 		$2.NoTabsAfterNonTabs = True
 		$2.inheritsSet = VisualStudio
 		$2.inheritsScope = text/plain
 		$2.scope = text/plain
-		$0.TextStylePolicy = $3
 		$3.inheritsSet = null
 		$3.scope = text/x-csharp
 		$0.CSharpFormattingPolicy = $4

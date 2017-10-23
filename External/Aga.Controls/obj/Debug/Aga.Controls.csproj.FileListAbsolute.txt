@@ -1,0 +1,8 @@
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\Aga.Controls\Bin\Debug\Aga.Controls.dll
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\Aga.Controls\Bin\Debug\Aga.Controls.pdb
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\Aga.Controls\obj\Debug\Aga.Controls.Properties.Resources.resources
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\Aga.Controls\obj\Debug\Aga.Controls.Tree.TreeViewAdv.resources
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\Aga.Controls\obj\Debug\Aga.Controls.csproj.GenerateResource.Cache
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\Aga.Controls\obj\Debug\Aga.Controls.csproj.CoreCompileInputs.cache
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\Aga.Controls\obj\Debug\Aga.Controls.dll
+C:\Users\ericl\Source\Repos\openhardwaremonitor\External\Aga.Controls\obj\Debug\Aga.Controls.pdb
