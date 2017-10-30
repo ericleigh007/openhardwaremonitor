@@ -30,6 +30,7 @@ namespace ConsoleMonitor
     public class ConfigurationInformation
     {
         public string recordType;
+        public string recordID;
         public string systemID;
         public string utcTime;
         public double latitude;
@@ -48,14 +49,24 @@ namespace ConsoleMonitor
 
             details = new Dictionary<string, object>();
         }
+
+        public void Resolve()
+        {
+            utcTime = DateTime.UtcNow.ToString("O");
+
+            recordID = "C" + "|" + systemID + "|" + utcTime;
+        }
     }
 
     public class MaintenanceInformation
     {
         public string recordType;
+        public string recordID;
         public string systemID;
+        public string TableKey;  // the partition key for CosmosDB
         public string utcTime;
         public double runTime;
+        public double incrRunTime;
 
         public double CPUTemperatureMax;
         public double CPUTemperatureMin;
@@ -94,7 +105,9 @@ namespace ConsoleMonitor
 
         public Dictionary<string, object> details;
 
-        private static DateTime startTime = DateTime.UtcNow;
+        public static DateTime updateStartTime;
+
+        private static DateTime monitorStartTime = DateTime.UtcNow;
 
         public MaintenanceInformation( string id)
         {
@@ -204,8 +217,14 @@ namespace ConsoleMonitor
                 GPUPowerMin = 0.0;
             }
 
-            runTime = (DateTime.UtcNow - startTime).TotalSeconds;
+            TableKey = systemID;
+
+            runTime = (DateTime.UtcNow - monitorStartTime).TotalSeconds;
             utcTime = DateTime.UtcNow.ToString("O");
+
+            incrRunTime = (DateTime.UtcNow - MaintenanceInformation.updateStartTime).TotalSeconds;
+
+            recordID = "M" + "|" + systemID + "|" + utcTime;
         }
     }
 
@@ -258,6 +277,8 @@ namespace ConsoleMonitor
                 config.maintInterval = 2000;
             }
 
+            MaintenanceInformation.updateStartTime = DateTime.UtcNow;
+
             var computerName = Dns.GetHostName();
             var nicAdapters = NetworkInterface.GetAllNetworkInterfaces();
             foreach( var nic in nicAdapters)
@@ -276,7 +297,7 @@ namespace ConsoleMonitor
                 Console.WriteLine($"Selected adapter {chosenNic.Name} with MAC {chosenMAC}");
             }
 
-            computerName += $".{chosenMAC}";
+            computerName += $"|{chosenMAC}";
 
             var cp = new Computer()
             {
@@ -361,9 +382,12 @@ namespace ConsoleMonitor
                 report = false;
 
                 string j = String.Empty;
+                UInt64 maintSize = 0;
 
                 if (config.sendConfig )
                 {
+                    configData.Resolve();
+
                     j = JsonConvert.SerializeObject(configData);
                     EventData data = new EventData(Encoding.UTF8.GetBytes(j)) { PartitionKey = configData.systemID };
 
@@ -372,8 +396,9 @@ namespace ConsoleMonitor
                         configHub.Send(data);
 
                         sentCount++;
-                        updateSentBytes += (UInt64)data.SerializedSizeInBytes;
-                        totalSentBytes += (UInt64)data.SerializedSizeInBytes;
+                        maintSize = (UInt64)data.SerializedSizeInBytes;
+                        updateSentBytes += maintSize;
+                        totalSentBytes += maintSize;
                     }
                     catch ( Exception ex)
                     {
@@ -411,11 +436,14 @@ namespace ConsoleMonitor
                     sentCount++;
                     updateSentBytes += (UInt64)data.SerializedSizeInBytes;
                     totalSentBytes += (UInt64)data.SerializedSizeInBytes;
+
                 }
                 else if ( !maintHub.IsClosed )
                 {
                     maintHub.Close();
                 }
+
+                MaintenanceInformation.updateStartTime = DateTime.UtcNow;
 
                 if ( firstSend || ((sentCount % 60 ) == 0))
                 {
@@ -451,7 +479,6 @@ namespace ConsoleMonitor
         }
     }
 
-    // get unique ID's based on a lot of info, so that we can have a flat hierarchy
     public static class extensionMethods
     {
         public static void UpdateGenericMaintenanceData( this ISensor sensor , IHardware hardware , MaintenanceInformation maintInfo)
@@ -562,10 +589,10 @@ namespace ConsoleMonitor
             }
         }
 
+        // Identifier is essentially the "path" to the sensor
         public static string GetID( this ISensor sensor )
         {
             var name = sensor.Identifier.ToString();
-//            var name = $"{sensor.Name}-{sensor.SensorType}-{sensor.Index}";
             return name;
         }
 
@@ -581,7 +608,6 @@ namespace ConsoleMonitor
         public static string GetID(this IHardware hardware)
         {
             var name = hardware.Identifier.ToString();
-//            var name = $"{hardware.Name}-{hardware.HardwareType}";
             return name;
         }
 
@@ -591,7 +617,6 @@ namespace ConsoleMonitor
 
             // add the object to the dictionary
             string descriptionString = String.Empty;
-
             descriptionString = hardware.GetReport();
 
             msg.Add(name, descriptionString);
