@@ -30,11 +30,11 @@ namespace ConsoleMonitor
     public class ConfigurationInformation
     {
         public string recordType;
+        public string recordVersion;
         public string recordID;
         public string systemID;
         public string utcTime;
-        public double latitude;
-        public double longitude;
+        public string locationGUID;
 
         public string MainboardType;
         public string CPUtype;
@@ -46,6 +46,7 @@ namespace ConsoleMonitor
         {
             systemID = id;
             recordType = "Configuration";
+            recordVersion = "00001";
 
             details = new Dictionary<string, object>();
         }
@@ -61,6 +62,7 @@ namespace ConsoleMonitor
     public class MaintenanceInformation
     {
         public string recordType;
+        public string recordVersion;
         public string recordID;
         public string systemID;
         public string TableKey;  // the partition key for CosmosDB
@@ -92,16 +94,30 @@ namespace ConsoleMonitor
         public double GPUFanSpeedMin;
         public double GPUFanSpeedAvg;
 
+        public double MainboardFanSpeedMax;
+        public double MainboardFanSpeedMin;
+        public double MainboardFanSpeedAvg;
+
+        public double MainboardTemperatureMax;
+        public double MainboardTemperatureMin;
+        public double MainboardTemperatureAvg;
+
+        public double MaximumTemperature;
+
         public double CPULoad;
         public double GPULoad;
         public double RAMLoad;
         public double diskLoad;
+
         public double CPUFanCount;
         public double GPUFanCount;
         public double CPUTempCount;
         public double GPUTempCount;
         public double CPUPowerCount;
         public double GPUPowerCount;
+
+        public double MainboardFanCount;
+        public double MainboardTempCount;
 
         public Dictionary<string, object> details;
 
@@ -114,6 +130,7 @@ namespace ConsoleMonitor
             systemID = id;
 
             recordType = "Maintenance";
+            recordVersion = "00002";
 
             CPUTemperatureMax = 0.0;
             CPUTemperatureMin = 1000.0;
@@ -139,12 +156,24 @@ namespace ConsoleMonitor
             GPUPowerMin = 10000.0;
             GPUPowerAvg = 0.0;
 
+            MainboardFanSpeedMax = 0.0;
+            MainboardFanSpeedMin = 10000.0;
+            MainboardFanSpeedAvg = 0.0;
+
+            MainboardTemperatureMax = 0.0;
+            MainboardTemperatureMin = 1000.0;
+            MainboardTemperatureAvg = 0.0;
+
+            MaximumTemperature = 0.0;
+
             CPUTempCount = 0;
             GPUTempCount = 0;
             CPUFanCount = 0;
             GPUFanCount = 0;
             CPUPowerCount = 0;
             GPUPowerCount = 0;
+            MainboardFanCount = 0;
+            MainboardTempCount = 0;
 
             details = new Dictionary<string, object>();
         }
@@ -216,6 +245,30 @@ namespace ConsoleMonitor
                 GPUPowerMax = 0.0;
                 GPUPowerMin = 0.0;
             }
+
+            if (MainboardTempCount > 0)
+            {
+                MainboardTemperatureAvg /= (double)MainboardTempCount;
+            }
+            else
+            {
+                MainboardTemperatureAvg = 0.0;
+                MainboardTemperatureMax = 0.0;
+                MainboardTemperatureMin = 0.0;
+            }
+
+            if (MainboardFanCount > 0)
+            {
+                MainboardFanSpeedAvg /= (double)MainboardFanCount;
+            }
+            else
+            {
+                MainboardFanSpeedAvg = 0.0;
+                MainboardFanSpeedMax = 0.0;
+                MainboardFanSpeedMin = 0.0;
+            }
+
+            MaximumTemperature = Math.Max(Math.Max(CPUTemperatureMax, GPUTemperatureMax), MainboardTemperatureMax);
 
             TableKey = systemID;
 
@@ -383,6 +436,7 @@ namespace ConsoleMonitor
 
                 string j = String.Empty;
                 UInt64 maintSize = 0;
+                UInt64 configSize = 0;
 
                 if (config.sendConfig )
                 {
@@ -396,9 +450,9 @@ namespace ConsoleMonitor
                         configHub.Send(data);
 
                         sentCount++;
-                        maintSize = (UInt64)data.SerializedSizeInBytes;
-                        updateSentBytes += maintSize;
-                        totalSentBytes += maintSize;
+                        configSize = (UInt64)data.SerializedSizeInBytes;
+                        updateSentBytes += configSize;
+                        totalSentBytes += configSize;
                     }
                     catch ( Exception ex)
                     {
@@ -406,6 +460,10 @@ namespace ConsoleMonitor
                             "     {ex.Message)\n" +
                             "     skipped");
                     }
+
+                    Console.WriteLine($"Configuration data size: {AutoFormatValue(configSize, 2)}");
+
+                    File.WriteAllText(@".\HWconfig-information.json", j);
 
                     // just once
                     config.sendConfig = false;
@@ -434,9 +492,9 @@ namespace ConsoleMonitor
                     }
 
                     sentCount++;
-                    updateSentBytes += (UInt64)data.SerializedSizeInBytes;
-                    totalSentBytes += (UInt64)data.SerializedSizeInBytes;
-
+                    maintSize = (UInt64)data.SerializedSizeInBytes;
+                    updateSentBytes += maintSize;
+                    totalSentBytes += maintSize;
                 }
                 else if ( !maintHub.IsClosed )
                 {
@@ -447,7 +505,15 @@ namespace ConsoleMonitor
 
                 if ( firstSend || ((sentCount % 60 ) == 0))
                 {
-                    firstSend = false;
+                    if ( firstSend )
+                    {
+                        Console.WriteLine($"Maintenance data size: {AutoFormatValue(maintSize, 2)}");
+
+                        File.WriteAllText(@".\HWmaint-information.json", j);
+
+                        firstSend = false;
+                    }
+
                     double sinceLastUpdate = updateTime.Elapsed.TotalSeconds;
 
                     double bytesSecond = (double)updateSentBytes / sinceLastUpdate;
@@ -485,6 +551,41 @@ namespace ConsoleMonitor
         {
             switch( hardware.HardwareType )
             {
+                case HardwareType.Mainboard:
+                    switch (sensor.SensorType)
+                    {
+                        case SensorType.Fan:
+                            if (sensor.Value > maintInfo.MainboardFanSpeedMax)
+                            {
+                                maintInfo.MainboardFanSpeedMax = (double)sensor.Value;
+                            }
+
+                            if (sensor.Value < maintInfo.MainboardFanSpeedMin)
+                            {
+                                maintInfo.MainboardFanSpeedMin = (double)sensor.Value;
+                            }
+
+                            maintInfo.MainboardFanSpeedAvg += (double)sensor.Value;
+                            maintInfo.MainboardFanCount++;
+
+                            break;
+                        case SensorType.Temperature:
+                            if (sensor.Value > maintInfo.MainboardTemperatureMax)
+                            {
+                                maintInfo.MainboardTemperatureMax = (double)sensor.Value;
+                            }
+
+                            if (sensor.Value < maintInfo.MainboardTemperatureMin)
+                            {
+                                maintInfo.MainboardTemperatureMin = (double)sensor.Value;
+                            }
+
+                            maintInfo.MainboardTemperatureAvg += (double)sensor.Value;
+                            maintInfo.MainboardTempCount++;
+
+                            break;
+                    }
+                    break;
                 case HardwareType.CPU:
                     switch (sensor.SensorType)
                     {
