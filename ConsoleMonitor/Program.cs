@@ -33,6 +33,7 @@ namespace ConsoleMonitor
         public string recordVersion;
         public string recordID;
         public string systemID;
+        public string TableKey;
         public string utcTime;
         public string locationGUID;
 
@@ -45,8 +46,9 @@ namespace ConsoleMonitor
         public ConfigurationInformation( string id)
         {
             systemID = id;
+            TableKey = id;
             recordType = "Configuration";
-            recordVersion = "00001";
+            recordVersion = "00002";
 
             details = new Dictionary<string, object>();
         }
@@ -385,7 +387,7 @@ namespace ConsoleMonitor
                 foreach (var hw in cp.Hardware)
                 {
                     if (report) Console.WriteLine(hw.GetReport());
-                    if (config.sendConfig) hw.AddHardware(configData.details);
+                    if (config.sendConfig) hw.AddHardware(configData);
 
                     hw.Update();
 
@@ -411,7 +413,7 @@ namespace ConsoleMonitor
                         if (report) Console.WriteLine(subhw.GetReport());
                         subhw.Update();
 
-                        if ( config.sendConfig) subhw.AddHardware(configData.details);
+                        if ( config.sendConfig) subhw.AddHardware(configData);
 
                         foreach (var subhwSensor in subhw.Sensors)
                         {
@@ -551,6 +553,7 @@ namespace ConsoleMonitor
         {
             switch( hardware.HardwareType )
             {
+                case HardwareType.SuperIO:
                 case HardwareType.Mainboard:
                     switch (sensor.SensorType)
                     {
@@ -712,10 +715,27 @@ namespace ConsoleMonitor
             return name;
         }
 
-        public static string AddHardware(this IHardware hardware, IDictionary<string, object> msg)
+        public static string AddHardware(this IHardware hardware, ConfigurationInformation configInfo)
         {
             var name = hardware.GetID();
+            var msg = configInfo.details;
 
+            switch( hardware.HardwareType )
+            {
+                case HardwareType.CPU:
+                    configInfo.CPUtype = hardware.Name;
+                    break;
+
+                case HardwareType.GpuAti:
+                case HardwareType.GpuNvidia:
+                    configInfo.GPUType = hardware.Name;
+                    break;
+
+                case HardwareType.Mainboard:
+                    configInfo.MainboardType = hardware.Name;
+                    break;
+
+            }
             // add the object to the dictionary
             string descriptionString = String.Empty;
             descriptionString = hardware.GetReport();
