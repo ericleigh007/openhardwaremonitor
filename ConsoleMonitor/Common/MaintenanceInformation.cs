@@ -18,42 +18,58 @@ namespace Raydon.CommonData.Maintenance
         public double runTime;
         public double incrRunTime;
 
+        // for each of these "quads", the Max and Min and Avg are the max and min of a number of fans for the subentity type
+        // like CPU.  They are NOT average over time.  Said another way, if there is only one Fan, then min,max,avg are all the same
+        // the "Opt" values are used for emulaation.  They are the current "center of range" for the value that is 
+        // "Wiggled" a bit to give it some realism, and modified as time or other factors are considered.
         public double CPUTemperatureMax;
         public double CPUTemperatureMin;
         public double CPUTemperatureAvg;
+        public double CPUTemperatureOpt;
 
         public double GPUTemperatureMax;
         public double GPUTemperatureMin;
         public double GPUTemperatureAvg;
+        public double GPUTemperatureOpt;
 
         public double CPUPowerMax;
         public double CPUPowerMin;
         public double CPUPowerAvg;
+        public double CPUPowerOpt;
 
         public double GPUPowerMax;
         public double GPUPowerMin;
         public double GPUPowerAvg;
+        public double GPUPowerOpt;
 
         public double CPUFanSpeedMax;
         public double CPUFanSpeedMin;
         public double CPUFanSpeedAvg;
+        public double CPUFanSpeedOpt;
 
         public double GPUFanSpeedMax;
         public double GPUFanSpeedMin;
         public double GPUFanSpeedAvg;
+        public double GPUFanSpeedOpt;
 
         public double MainboardFanSpeedMax;
         public double MainboardFanSpeedMin;
         public double MainboardFanSpeedAvg;
+        public double MainboardFanSpeedOpt;
 
         public double MainboardTemperatureMax;
         public double MainboardTemperatureMin;
         public double MainboardTemperatureAvg;
+        public double MainboardTemperatureOpt;
 
-        public double MaximumTemperature;
+        public double MaximumCaseTemperature;
 
         public double CPULoad;
+        public double CPULoadOpt;
+
         public double GPULoad;
+        public double GPULoadOpt;
+
         public double RAMLoad;
         public double diskLoad;
 
@@ -68,6 +84,7 @@ namespace Raydon.CommonData.Maintenance
         public double MainboardTempCount;
 
         public double systemPowerWatts;
+        public double systemPowerWattsOpt;
 
         public Dictionary<string, object> details;
 
@@ -81,7 +98,7 @@ namespace Raydon.CommonData.Maintenance
             venueID = vID;
 
             recordType = "Maintenance";
-            recordVersion = "00003";
+            recordVersion = "00004";
 
             CPUTemperatureMax = 0.0;
             CPUTemperatureMin = 1000.0;
@@ -115,7 +132,7 @@ namespace Raydon.CommonData.Maintenance
             MainboardTemperatureMin = 1000.0;
             MainboardTemperatureAvg = 0.0;
 
-            MaximumTemperature = 0.0;
+            MaximumCaseTemperature = 0.0;
 
             CPUTempCount = 0;
             GPUTempCount = 0;
@@ -219,9 +236,7 @@ namespace Raydon.CommonData.Maintenance
                 MainboardFanSpeedMin = 0.0;
             }
 
-            MaximumTemperature = Math.Max(Math.Max(CPUTemperatureMax, GPUTemperatureMax), MainboardTemperatureMax);
-
-            TableKey = systemID;
+            MaximumCaseTemperature = Math.Max(Math.Max(CPUTemperatureMax, GPUTemperatureMax), MainboardTemperatureMax);
 
             runTime = (DateTime.UtcNow - monitorStartTime).TotalSeconds;
             utcTime = DateTime.UtcNow.ToString("O");
@@ -229,6 +244,13 @@ namespace Raydon.CommonData.Maintenance
             incrRunTime = (DateTime.UtcNow - MaintenanceInformation.updateStartTime).TotalSeconds;
 
             recordID = "M" + "|" + systemID + "|" + utcTime;
+        }
+
+        public string GetPartitionKey()
+        {
+            var partKey = $"Maint|{venueID}|{systemID}";
+            TableKey = partKey;
+            return partKey;
         }
     }
 }

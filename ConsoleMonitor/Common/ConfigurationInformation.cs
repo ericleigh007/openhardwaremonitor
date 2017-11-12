@@ -27,10 +27,9 @@ namespace Raydon.CommonData.Configuration
         {
             systemID = id;
             venueID = vID;
-            TableKey = id;
 
             recordType = "Configuration";
-            recordVersion = "00003";
+            recordVersion = "00004";
 
             details = new Dictionary<string, object>();
         }
@@ -40,6 +39,13 @@ namespace Raydon.CommonData.Configuration
             utcTime = DateTime.UtcNow.ToString("O");
 
             recordID = "C" + "|" + systemID + "|" + utcTime;
+        }
+
+        public string GetPartitionKey()
+        {
+            var partKey = $"Config|{venueID}|{systemID}";
+            TableKey = partKey;
+            return partKey;
         }
     }
 }
