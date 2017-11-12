@@ -10,6 +10,9 @@ using System.IO;
 using System.Diagnostics;
 using Microsoft.ServiceBus.Messaging;
 
+using Raydon.CommonData.Configuration;
+using Raydon.CommonData.Maintenance;
+
 using Newtonsoft.Json;
 using System.Net.NetworkInformation;
 
@@ -27,216 +30,16 @@ using System.Net.NetworkInformation;
 
 namespace ConsoleMonitor
 {
-    public class ConfigurationInformation
-    {
-        public string recordType;
-        public string recordID;
-        public string systemID;
-        public string utcTime;
-        public double latitude;
-        public double longitude;
-
-        public string MainboardType;
-        public string CPUtype;
-        public string GPUType;
-
-        public Dictionary<string, object> details;
-
-        public ConfigurationInformation( string id)
-        {
-            systemID = id;
-            recordType = "Configuration";
-
-            details = new Dictionary<string, object>();
-        }
-
-        public void Resolve()
-        {
-            utcTime = DateTime.UtcNow.ToString("O");
-
-            recordID = "C" + "|" + systemID + "|" + utcTime;
-        }
-    }
-
-    public class MaintenanceInformation
-    {
-        public string recordType;
-        public string recordID;
-        public string systemID;
-        public string TableKey;  // the partition key for CosmosDB
-        public string utcTime;
-        public double runTime;
-        public double incrRunTime;
-
-        public double CPUTemperatureMax;
-        public double CPUTemperatureMin;
-        public double CPUTemperatureAvg;
-
-        public double GPUTemperatureMax;
-        public double GPUTemperatureMin;
-        public double GPUTemperatureAvg;
-
-        public double CPUPowerMax;
-        public double CPUPowerMin;
-        public double CPUPowerAvg;
-
-        public double GPUPowerMax;
-        public double GPUPowerMin;
-        public double GPUPowerAvg;
-
-        public double CPUFanSpeedMax;
-        public double CPUFanSpeedMin;
-        public double CPUFanSpeedAvg;
-
-        public double GPUFanSpeedMax;
-        public double GPUFanSpeedMin;
-        public double GPUFanSpeedAvg;
-
-        public double CPULoad;
-        public double GPULoad;
-        public double RAMLoad;
-        public double diskLoad;
-        public double CPUFanCount;
-        public double GPUFanCount;
-        public double CPUTempCount;
-        public double GPUTempCount;
-        public double CPUPowerCount;
-        public double GPUPowerCount;
-
-        public Dictionary<string, object> details;
-
-        public static DateTime updateStartTime;
-
-        private static DateTime monitorStartTime = DateTime.UtcNow;
-
-        public MaintenanceInformation( string id)
-        {
-            systemID = id;
-
-            recordType = "Maintenance";
-
-            CPUTemperatureMax = 0.0;
-            CPUTemperatureMin = 1000.0;
-            CPUTemperatureAvg = 0.0;
-
-            GPUTemperatureMax = 0.0;
-            GPUTemperatureMin = 1000.0;
-            GPUTemperatureAvg = 0.0;
-
-            CPUFanSpeedMax = 0.0;
-            CPUFanSpeedMin = 10000.0;
-            CPUFanSpeedAvg = 0.0;
-
-            GPUFanSpeedMax = 0.0;
-            GPUFanSpeedMin = 10000.0;
-            GPUFanSpeedAvg = 0.0;
-
-            CPUPowerMax = 0.0;
-            CPUPowerMin = 10000.0;
-            CPUPowerAvg = 0.0;
-
-            GPUPowerMax = 0.0;
-            GPUPowerMin = 10000.0;
-            GPUPowerAvg = 0.0;
-
-            CPUTempCount = 0;
-            GPUTempCount = 0;
-            CPUFanCount = 0;
-            GPUFanCount = 0;
-            CPUPowerCount = 0;
-            GPUPowerCount = 0;
-
-            details = new Dictionary<string, object>();
-        }
-
-        public void Resolve()
-        {
-            if (CPUTempCount > 0)
-            {
-                CPUTemperatureAvg /= (double)CPUTempCount;
-            }
-            else
-            {
-                CPUTemperatureAvg = 0.0;
-                CPUTemperatureMax = 0.0;
-                CPUTemperatureMin = 0.0;
-            }
-
-            if (GPUTempCount > 0)
-            {
-                GPUTemperatureAvg /= (double)GPUTempCount;
-            }
-            else
-            {
-                GPUTemperatureAvg = 0.0;
-                GPUTemperatureMax = 0.0;
-                GPUTemperatureMin = 0.0;
-            }
-
-            if (CPUFanCount > 0)
-            {
-                CPUFanSpeedAvg /= (double)CPUFanCount;
-            }
-            else
-            {
-                CPUFanSpeedAvg = 0.0;
-                CPUFanSpeedMax = 0.0;
-                CPUFanSpeedMin = 0.0;
-            }
-
-            if (GPUFanCount > 0)
-            {
-                GPUFanSpeedAvg /= (double)GPUFanCount;
-            }
-            else
-            {
-                GPUFanSpeedAvg = 0.0;
-                GPUFanSpeedMax = 0.0;
-                GPUFanSpeedMin = 0.0;
-            }
-
-            if ( CPUPowerCount > 0)
-            {
-                CPUPowerAvg /= (double)CPUPowerCount;
-            }
-            else
-            {
-                CPUPowerAvg = 0.0;
-                CPUPowerMax = 0.0;
-                CPUPowerMin = 0.0;
-            }
-
-            if (GPUPowerCount > 0)
-            {
-                GPUPowerAvg /= (double)GPUPowerCount;
-            }
-            else
-            {
-                GPUPowerAvg = 0.0;
-                GPUPowerMax = 0.0;
-                GPUPowerMin = 0.0;
-            }
-
-            TableKey = systemID;
-
-            runTime = (DateTime.UtcNow - monitorStartTime).TotalSeconds;
-            utcTime = DateTime.UtcNow.ToString("O");
-
-            incrRunTime = (DateTime.UtcNow - MaintenanceInformation.updateStartTime).TotalSeconds;
-
-            recordID = "M" + "|" + systemID + "|" + utcTime;
-        }
-    }
-
     public class Config
     {
+        public string venueName;
+        public string venueID;
+
         public bool sendConfig;
         public bool sendMaintenance;
 
         public int maintInterval;
 
-        public string configHubName;
-        public string configHubConnectionString;
         public string maintHubName;
         public string maintHubConnectionString;
     }
@@ -258,16 +61,10 @@ namespace ConsoleMonitor
                 return 1;
             }
 
-            EventHubClient configHub = null;
             var config = JsonConvert.DeserializeObject<Config>(jsonConfig);
 
-            if ( config.sendConfig )
-            {
-                configHub = EventHubClient.CreateFromConnectionString(config.configHubConnectionString);
-            }
-
             EventHubClient maintHub = null;
-            if ( config.sendMaintenance )
+            if ( config.sendMaintenance || config.sendConfig)
             {
                 maintHub = EventHubClient.CreateFromConnectionString(config.maintHubConnectionString);
             }
@@ -319,7 +116,7 @@ namespace ConsoleMonitor
             Stopwatch updateTime = new Stopwatch();
             updateTime.Start();
 
-            var configData = new ConfigurationInformation(computerName);
+            var configData = new ConfigurationInformation(computerName, config.venueName);
             int sentCount = 0;
             UInt64 updateSentBytes = 0;
             UInt64 totalSentBytes = 0;
@@ -327,12 +124,12 @@ namespace ConsoleMonitor
 
             while (true)
             {
-                var maintData = new MaintenanceInformation(computerName);
+                var maintData = new MaintenanceInformation(computerName, config.venueName);
 
                 foreach (var hw in cp.Hardware)
                 {
                     if (report) Console.WriteLine(hw.GetReport());
-                    if (config.sendConfig) hw.AddHardware(configData.details);
+                    if (config.sendConfig) hw.AddHardware(configData);
 
                     hw.Update();
 
@@ -358,7 +155,7 @@ namespace ConsoleMonitor
                         if (report) Console.WriteLine(subhw.GetReport());
                         subhw.Update();
 
-                        if ( config.sendConfig) subhw.AddHardware(configData.details);
+                        if ( config.sendConfig) subhw.AddHardware(configData);
 
                         foreach (var subhwSensor in subhw.Sensors)
                         {
@@ -383,6 +180,7 @@ namespace ConsoleMonitor
 
                 string j = String.Empty;
                 UInt64 maintSize = 0;
+                UInt64 configSize = 0;
 
                 if (config.sendConfig )
                 {
@@ -393,26 +191,26 @@ namespace ConsoleMonitor
 
                     try
                     {
-                        configHub.Send(data);
+                        maintHub.Send(data);
 
                         sentCount++;
-                        maintSize = (UInt64)data.SerializedSizeInBytes;
-                        updateSentBytes += maintSize;
-                        totalSentBytes += maintSize;
+                        configSize = (UInt64)data.SerializedSizeInBytes;
+                        updateSentBytes += configSize;
+                        totalSentBytes += configSize;
                     }
                     catch ( Exception ex)
                     {
-                        Console.WriteLine($"Exception sending to {config.configHubName} \n" +
+                        Console.WriteLine($"Exception sending {configData.recordType} data to {config.maintHubName} \n" +
                             "     {ex.Message)\n" +
                             "     skipped");
                     }
 
+                    Console.WriteLine($"{configData.recordType} data size: {AutoFormatValue(configSize, 2)}");
+
+                    File.WriteAllText(@".\HWconfig-information.json", j);
+
                     // just once
                     config.sendConfig = false;
-                }
-                else if ( !configHub.IsClosed )
-                {
-                    configHub.Close();
                 }
 
                 if (config.sendMaintenance )
@@ -428,27 +226,31 @@ namespace ConsoleMonitor
                     }
                     catch ( Exception ex)
                     {
-                        Console.WriteLine($"Exception sending to {config.maintHubName} \n" +
+                        Console.WriteLine($"Exception sending {maintData.recordType} data to {config.maintHubName} \n" +
                         "     {ex.Message)\n" +
                         "     skipped");
                     }
 
                     sentCount++;
-                    updateSentBytes += (UInt64)data.SerializedSizeInBytes;
-                    totalSentBytes += (UInt64)data.SerializedSizeInBytes;
-
-                }
-                else if ( !maintHub.IsClosed )
-                {
-                    maintHub.Close();
+                    maintSize = (UInt64)data.SerializedSizeInBytes;
+                    updateSentBytes += maintSize;
+                    totalSentBytes += maintSize;
                 }
 
                 MaintenanceInformation.updateStartTime = DateTime.UtcNow;
 
-                if ( firstSend || ((sentCount % 60 ) == 0))
+                double sinceLastUpdate = updateTime.Elapsed.TotalSeconds;
+
+                if ( firstSend || (sinceLastUpdate > 60.0 ))
                 {
-                    firstSend = false;
-                    double sinceLastUpdate = updateTime.Elapsed.TotalSeconds;
+                    if ( firstSend )
+                    {
+                        Console.WriteLine($"{maintData.recordType} data size: {AutoFormatValue(maintSize, 2)}");
+
+                        File.WriteAllText(@".\HWmaint-information.json", j);
+
+                        firstSend = false;
+                    }
 
                     double bytesSecond = (double)updateSentBytes / sinceLastUpdate;
                     string autoValue = AutoFormatValue(totalSentBytes, 2);
@@ -485,6 +287,42 @@ namespace ConsoleMonitor
         {
             switch( hardware.HardwareType )
             {
+                case HardwareType.SuperIO:
+                case HardwareType.Mainboard:
+                    switch (sensor.SensorType)
+                    {
+                        case SensorType.Fan:
+                            if (sensor.Value > maintInfo.MainboardFanSpeedMax)
+                            {
+                                maintInfo.MainboardFanSpeedMax = (double)sensor.Value;
+                            }
+
+                            if (sensor.Value < maintInfo.MainboardFanSpeedMin)
+                            {
+                                maintInfo.MainboardFanSpeedMin = (double)sensor.Value;
+                            }
+
+                            maintInfo.MainboardFanSpeedAvg += (double)sensor.Value;
+                            maintInfo.MainboardFanCount++;
+
+                            break;
+                        case SensorType.Temperature:
+                            if (sensor.Value > maintInfo.MainboardTemperatureMax)
+                            {
+                                maintInfo.MainboardTemperatureMax = (double)sensor.Value;
+                            }
+
+                            if (sensor.Value < maintInfo.MainboardTemperatureMin)
+                            {
+                                maintInfo.MainboardTemperatureMin = (double)sensor.Value;
+                            }
+
+                            maintInfo.MainboardTemperatureAvg += (double)sensor.Value;
+                            maintInfo.MainboardTempCount++;
+
+                            break;
+                    }
+                    break;
                 case HardwareType.CPU:
                     switch (sensor.SensorType)
                     {
@@ -611,10 +449,27 @@ namespace ConsoleMonitor
             return name;
         }
 
-        public static string AddHardware(this IHardware hardware, IDictionary<string, object> msg)
+        public static string AddHardware(this IHardware hardware, ConfigurationInformation configInfo)
         {
             var name = hardware.GetID();
+            var msg = configInfo.details;
 
+            switch( hardware.HardwareType )
+            {
+                case HardwareType.CPU:
+                    configInfo.CPUtype = hardware.Name;
+                    break;
+
+                case HardwareType.GpuAti:
+                case HardwareType.GpuNvidia:
+                    configInfo.GPUType = hardware.Name;
+                    break;
+
+                case HardwareType.Mainboard:
+                    configInfo.MainboardType = hardware.Name;
+                    break;
+
+            }
             // add the object to the dictionary
             string descriptionString = String.Empty;
             descriptionString = hardware.GetReport();
