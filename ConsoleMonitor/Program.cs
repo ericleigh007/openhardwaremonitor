@@ -37,15 +37,26 @@ namespace ConsoleMonitor
 
         public bool sendConfig;
         public bool sendMaintenance;
+        public bool useREST;
 
         public int maintInterval;
 
         public string maintHubName;
         public string maintHubConnectionString;
+
+        public string sas;
     }
 
     class Program
     {
+        static EventHubClient maintHub;
+        static int sentCount = 0;
+        static UInt64 updateSentBytes = 0;
+        static UInt64 totalSentBytes = 0;
+        static UInt64 maintSize = 0;
+        static UInt64 configSize = 0;
+        private static string sendMethod = String.Empty;
+
         static int Main(string[] args)
         {
             string configFileName = args[0];
@@ -63,10 +74,19 @@ namespace ConsoleMonitor
 
             var config = JsonConvert.DeserializeObject<Config>(jsonConfig);
 
-            EventHubClient maintHub = null;
-            if ( config.sendMaintenance || config.sendConfig)
+            if (config.useREST && !String.IsNullOrWhiteSpace(config.sas))
             {
-                maintHub = EventHubClient.CreateFromConnectionString(config.maintHubConnectionString);
+                EventHubREST.sas = config.sas;
+                Console.WriteLine($"sending updates via REST");
+                sendMethod = "REST";
+            }
+            else
+            {
+                sendMethod = "AMQP";
+                if (config.sendMaintenance || config.sendConfig)
+                {
+                    maintHub = EventHubClient.CreateFromConnectionString(config.maintHubConnectionString);
+                }
             }
 
             if ( config.maintInterval == 0 )
@@ -117,9 +137,6 @@ namespace ConsoleMonitor
             updateTime.Start();
 
             var configData = new ConfigurationInformation(computerName, config.venueName);
-            int sentCount = 0;
-            UInt64 updateSentBytes = 0;
-            UInt64 totalSentBytes = 0;
             bool firstSend = true;
 
             while (true)
@@ -179,31 +196,14 @@ namespace ConsoleMonitor
                 report = false;
 
                 string j = String.Empty;
-                UInt64 maintSize = 0;
-                UInt64 configSize = 0;
 
                 if (config.sendConfig )
                 {
                     configData.Resolve();
 
                     j = JsonConvert.SerializeObject(configData);
-                    EventData data = new EventData(Encoding.UTF8.GetBytes(j)) { PartitionKey = configData.systemID };
 
-                    try
-                    {
-                        maintHub.Send(data);
-
-                        sentCount++;
-                        configSize = (UInt64)data.SerializedSizeInBytes;
-                        updateSentBytes += configSize;
-                        totalSentBytes += configSize;
-                    }
-                    catch ( Exception ex)
-                    {
-                        Console.WriteLine($"Exception sending {configData.recordType} data to {config.maintHubName} \n" +
-                            "     {ex.Message)\n" +
-                            "     skipped");
-                    }
+                    configSize = SendToMaintHub(j, configData.systemID, config.maintHubName, configData.recordType);
 
                     Console.WriteLine($"{configData.recordType} data size: {AutoFormatValue(configSize, 2)}");
 
@@ -218,23 +218,7 @@ namespace ConsoleMonitor
                     maintData.Resolve();
 
                     j = JsonConvert.SerializeObject(maintData);
-                    EventData data = new EventData(Encoding.UTF8.GetBytes(j)) { PartitionKey = maintData.systemID };
-
-                    try
-                    {
-                        maintHub.Send(data);
-                    }
-                    catch ( Exception ex)
-                    {
-                        Console.WriteLine($"Exception sending {maintData.recordType} data to {config.maintHubName} \n" +
-                        "     {ex.Message)\n" +
-                        "     skipped");
-                    }
-
-                    sentCount++;
-                    maintSize = (UInt64)data.SerializedSizeInBytes;
-                    updateSentBytes += maintSize;
-                    totalSentBytes += maintSize;
+                    maintSize = SendToMaintHub(j, maintData.systemID, config.maintHubName, maintData.recordType);
                 }
 
                 MaintenanceInformation.updateStartTime = DateTime.UtcNow;
@@ -255,7 +239,7 @@ namespace ConsoleMonitor
                     double bytesSecond = (double)updateSentBytes / sinceLastUpdate;
                     string autoValue = AutoFormatValue(totalSentBytes, 2);
                     string autoBytesSecond = AutoFormatValue( (ulong) bytesSecond, 2);
-                    Console.WriteLine($"{computerName}: at {maintData.utcTime} : interval: {config.maintInterval} {sentCount} sends, {autoValue} ({autoBytesSecond}/Sec)");
+                    Console.WriteLine($"{computerName}: at {maintData.utcTime} : (via {sendMethod}) interval: {config.maintInterval} {sentCount} sends, {autoValue} ({autoBytesSecond}/Sec)");
 
                     updateTime.Restart();
                     updateSentBytes = 0;
@@ -279,8 +263,38 @@ namespace ConsoleMonitor
             var adjustedSize = Math.Round(value / Math.Pow(1024, mag), decimalPlaces);
             return String.Format("{0} {1}", adjustedSize, SizeSuffixes[mag]);
         }
+
+        static UInt64 SendToMaintHub( string jsonString , string partitionKey, string name, string type )
+        {
+            UInt64 sendSize = 0;
+            if (maintHub != null)
+            {
+                EventData data = new EventData(Encoding.UTF8.GetBytes(jsonString)) { PartitionKey = partitionKey };
+                try
+                {
+                    maintHub.Send(data);
+                    sendSize = (UInt64)data.SerializedSizeInBytes;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Exception sending {type} data to {name} \n" +
+                        "     {ex.Message)\n" +
+                        "     skipped");
+                }
+            }
+            else
+            {
+                sendSize = (UInt64) EventHubREST.Send(jsonString);
+            }
+
+            sentCount++;
+            updateSentBytes += sendSize;
+            totalSentBytes += sendSize;
+            return sendSize;
+        }
     }
 
+    
     public static class extensionMethods
     {
         public static void UpdateGenericMaintenanceData( this ISensor sensor , IHardware hardware , MaintenanceInformation maintInfo)
