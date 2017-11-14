@@ -15,6 +15,7 @@ namespace Raydon.CommonData.Venue
 
         // required to start the venue
         public string venueID;
+        public string TableKey;   // partition key for DocumentDB
         public string name;
         public string address;
         public string country;
@@ -56,11 +57,11 @@ namespace Raydon.CommonData.Venue
         public static readonly double optimumSysAmperagePerSystem = 4.0;
         public static readonly double optimumSysFrequency = 60.0;
 
-        public VenueInformation( string id , int sysCount )
+        public VenueInformation(string id, int sysCount)
         {
             venueID = id;
             recordType = "Venue";
-            recordVersion = "00001";
+            recordVersion = "00002";
 
             systemCount = sysCount;
         }
@@ -69,6 +70,13 @@ namespace Raydon.CommonData.Venue
         {
             utcTime = DateTime.UtcNow.ToString("O");
             recordID = $"V|{venueID}|{utcTime}";
+        }
+
+        public string GetPartitionKey()
+        {
+            var partKey = $"Venue|{venueID}";
+            TableKey = partKey;
+            return partKey;
         }
     }
 

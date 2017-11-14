@@ -98,7 +98,7 @@ namespace Raydon.CommonData.Maintenance
             venueID = vID;
 
             recordType = "Maintenance";
-            recordVersion = "00003";
+            recordVersion = "00004";
 
             CPUTemperatureMax = 0.0;
             CPUTemperatureMin = 1000.0;
@@ -238,14 +238,19 @@ namespace Raydon.CommonData.Maintenance
 
             MaximumCaseTemperature = Math.Max(Math.Max(CPUTemperatureMax, GPUTemperatureMax), MainboardTemperatureMax);
 
-            TableKey = systemID;
-
             runTime = (DateTime.UtcNow - monitorStartTime).TotalSeconds;
             utcTime = DateTime.UtcNow.ToString("O");
 
             incrRunTime = (DateTime.UtcNow - MaintenanceInformation.updateStartTime).TotalSeconds;
 
             recordID = "M" + "|" + systemID + "|" + utcTime;
+        }
+
+        public string GetPartitionKey()
+        {
+            var partKey = $"Maint|{venueID}|{systemID}";
+            TableKey = partKey;
+            return partKey;
         }
     }
 }
