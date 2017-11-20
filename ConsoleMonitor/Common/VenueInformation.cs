@@ -27,6 +27,8 @@ namespace Raydon.CommonData.Venue
         public string county;
         public string MTC;
         public int systemCount;
+        public int venueIndex;
+        public int totalVenueCount;  // just used for reporting
         public double lat;
         public double lon;
 
@@ -45,15 +47,20 @@ namespace Raydon.CommonData.Venue
         public double envSysCompressorPower;
         public double envSysFanSpeed;
 
+        public bool powerOffLastTime;
+        public DateTime powerOnTime;
+
         public string powerSysMode;
         public double powerSysVoltage;
         public double powerSysAmperage;
         public double powerSysFrequency;
 
+        public double runTime;
+
         public static readonly double optimumInternalTemp = 20.0;
         public static readonly double optimumTemperatureRange = 2.0;  // within +/- this many degrees, the AC system doesn't run
 
-        public static readonly double optimumSysVoltage = 117.0;
+        public static readonly double optimumSysVoltage = 220.0;
         public static readonly double optimumSysAmperagePerSystem = 4.0;
         public static readonly double optimumSysFrequency = 60.0;
 
@@ -61,7 +68,7 @@ namespace Raydon.CommonData.Venue
         {
             venueID = id;
             recordType = "Venue";
-            recordVersion = "00002";
+            recordVersion = "00005";
 
             systemCount = sysCount;
         }

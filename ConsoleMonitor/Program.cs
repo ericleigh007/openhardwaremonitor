@@ -77,8 +77,8 @@ namespace ConsoleMonitor
             if (config.useREST && !String.IsNullOrWhiteSpace(config.sas))
             {
                 EventHubREST.sas = config.sas;
-                Console.WriteLine($"sending updates via REST");
-                sendMethod = "REST";
+                Console.WriteLine($"sending updates via HTTP");
+                sendMethod = "HTTP";
             }
             else
             {
@@ -141,7 +141,7 @@ namespace ConsoleMonitor
 
             while (true)
             {
-                var maintData = new MaintenanceInformation(computerName, config.venueName);
+                var maintData = new MaintenanceInformation(computerName, config.venueName, sendMethod);
 
                 foreach (var hw in cp.Hardware)
                 {
@@ -277,9 +277,7 @@ namespace ConsoleMonitor
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Exception sending {type} data to {name} \n" +
-                        "     {ex.Message)\n" +
-                        "     skipped");
+                    Console.WriteLine($"Exception sending {type} data to {name} \n     {ex.Message}\n     skipped");
                 }
             }
             else

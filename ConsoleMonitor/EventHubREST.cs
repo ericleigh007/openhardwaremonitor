@@ -11,7 +11,7 @@ namespace ConsoleMonitor
     public static class EventHubREST
     {
         private static string serviceNamespace = "raydoneventhubnamespace-01";
-        private static string hubName = "raydontrainingdatahub-01";
+        private static string hubName = "maintHub-01";
         private static string deviceName = "device-01";
         private static Uri uri = null;
         private static int count = 0;

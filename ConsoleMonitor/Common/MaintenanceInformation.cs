@@ -10,6 +10,7 @@ namespace Raydon.CommonData.Maintenance
     {
         public string recordType;
         public string recordVersion;
+        public string transportType;  // AMQP, or HTTP
         public string recordID;
         public string systemID;
         public string venueID;
@@ -92,13 +93,13 @@ namespace Raydon.CommonData.Maintenance
 
         private static DateTime monitorStartTime = DateTime.UtcNow;
 
-        public MaintenanceInformation(string id, string vID)
+        public MaintenanceInformation(string id, string vID, string transport = "AMQP")
         {
             systemID = id;
             venueID = vID;
 
             recordType = "Maintenance";
-            recordVersion = "00004";
+            recordVersion = "00005";
 
             CPUTemperatureMax = 0.0;
             CPUTemperatureMin = 1000.0;
@@ -142,6 +143,8 @@ namespace Raydon.CommonData.Maintenance
             GPUPowerCount = 0;
             MainboardFanCount = 0;
             MainboardTempCount = 0;
+
+            transportType = transport;
 
             details = new Dictionary<string, object>();
         }
@@ -243,7 +246,7 @@ namespace Raydon.CommonData.Maintenance
 
             incrRunTime = (DateTime.UtcNow - MaintenanceInformation.updateStartTime).TotalSeconds;
 
-            recordID = "M" + "|" + systemID + "|" + utcTime;
+            recordID = $"M|{systemID}|{utcTime}";
         }
 
         public string GetPartitionKey()

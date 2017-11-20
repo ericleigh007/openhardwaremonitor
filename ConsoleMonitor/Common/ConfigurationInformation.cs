@@ -17,19 +17,26 @@ namespace Raydon.CommonData.Configuration
         public string venueID;
         public bool configSent;
 
+        public string tags;  // used to delineate real and emulated systems
+
         public string MainboardType;
         public string CPUtype;
         public string GPUType;
 
         public Dictionary<string, object> details;
 
-        public ConfigurationInformation(string id, string vID)
+        public ConfigurationInformation(string id, string vID, bool isEmulated = false)
         {
             systemID = id;
             venueID = vID;
 
             recordType = "Configuration";
-            recordVersion = "00004";
+            recordVersion = "00005";
+
+            if (isEmulated)
+            {
+                tags = "Emulated";
+            }
 
             details = new Dictionary<string, object>();
         }
@@ -38,7 +45,7 @@ namespace Raydon.CommonData.Configuration
         {
             utcTime = DateTime.UtcNow.ToString("O");
 
-            recordID = "C" + "|" + systemID + "|" + utcTime;
+            recordID = $"C|{systemID}|{utcTime}";
         }
 
         public string GetPartitionKey()
